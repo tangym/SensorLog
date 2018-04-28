@@ -1,10 +1,15 @@
 package tangym.sensorlog;
 
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioDeviceInfo;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.activity.WearableActivity;
@@ -37,6 +42,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private BoxInsetLayout mContainerView;
     private TextView mTextView;
     private ToggleButton mButton;
+    private MediaPlayer mediaPlayer = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +82,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         });
     }
 
-    protected  void startRecording() {
+    protected void startRecording() {
+        startSpeaker();
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
         File file = new File(PATH, String.format("s%s.csv", timestamp));
@@ -119,7 +126,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     }
 
-    protected  void stopRecording() {
+    protected void stopRecording() {
+        stopSpeaker();
         if (mSensorManager != null) {
             mSensorManager.unregisterListener(this);
             mSensorManager = null;
@@ -132,6 +140,40 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 e.printStackTrace();
             }
         }
+    }
+
+    protected void startSpeaker() {
+        Context context = getApplicationContext();
+        mediaPlayer = MediaPlayer.create(context, R.raw.sample_audio);
+        mediaPlayer.start();
+    }
+
+    protected void stopSpeaker() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+
+    protected boolean hasSpeaker() {
+        Context context = getApplicationContext();
+        PackageManager packageManager = context.getPackageManager();
+        AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_OUTPUT)) {
+                return false;
+            }
+
+            AudioDeviceInfo[] devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
+            for (AudioDeviceInfo device : devices) {
+                if (device.getType() == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override
