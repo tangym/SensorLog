@@ -32,6 +32,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -191,10 +194,18 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             public void run() {
                 String timestamp = new SimpleDateFormat(
                         "yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
-                File file = new File(PATH, String.format("s%s.pcm", timestamp));
+                String endian = null;
+                if (ByteOrder.BIG_ENDIAN == ByteOrder.nativeOrder()) {
+                    endian = "big";
+                } else {
+                    endian = "little";
+                }
+                File file = new File(PATH, String.format("s%s_%s.pcm", timestamp, endian));
                 FileOutputStream out = null;
+                FileChannel outChannel = null;
                 try {
                     out = new FileOutputStream(file.getPath());
+                    outChannel = out.getChannel();
                 } catch (FileNotFoundException fnfe) {
                     fnfe.printStackTrace();
                     Log.e(TAG, "File " + file.getPath() + " not found.");
@@ -202,16 +213,17 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
                 int samplingRate = 44100;
                 int minBufferSize = AudioRecord.getMinBufferSize(
-                        samplingRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+                        samplingRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT);
                 audioRecord = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, samplingRate,
-                        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, minBufferSize);
+                        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT, minBufferSize);
                 audioRecord.startRecording();
 
-                byte[] buffer = new byte[minBufferSize];
+                ByteBuffer buffer = ByteBuffer.allocateDirect(minBufferSize);
                 while (isReccording) {
-                    audioRecord.read(buffer, 0, buffer.length);
+                    audioRecord.read(buffer, minBufferSize);
                     try {
-                        out.write(buffer);
+                        //out.write(buffer);
+                        outChannel.write(buffer);
                     } catch (IOException ioe) {
                         ioe.printStackTrace();
                         Log.e(TAG, "Write audio file error.");
