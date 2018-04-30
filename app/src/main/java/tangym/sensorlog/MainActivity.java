@@ -203,7 +203,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 int samplingRate = 44100;
                 int minBufferSize = AudioRecord.getMinBufferSize(
                         samplingRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-                audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, samplingRate,
+                audioRecord = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, samplingRate,
                         AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, minBufferSize);
                 audioRecord.startRecording();
 
