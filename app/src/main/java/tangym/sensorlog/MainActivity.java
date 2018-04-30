@@ -7,10 +7,15 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.AudioDeviceInfo;
+import android.media.AudioFormat;
 import android.media.AudioManager;
+import android.media.AudioRecord;
 import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.view.BoxInsetLayout;
@@ -23,6 +28,8 @@ import android.Manifest;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -35,7 +42,7 @@ import java.util.Locale;
 public class MainActivity extends WearableActivity implements SensorEventListener {
 
     private final String TAG = "SensorLog";
-    private final String PATH = "sdcard/SensorLog/";
+    private final String PATH = "/sdcard/SensorLog/";
     private SensorManager mSensorManager;
     private BufferedWriter output;
 
@@ -43,6 +50,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private TextView mTextView;
     private ToggleButton mButton;
     private MediaPlayer mediaPlayer = null;
+//    private MediaRecorder mediaRecorder = null;
+    private AudioRecord audioRecord = null;
+    private boolean isReccording = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,16 +60,32 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         setContentView(R.layout.activity_main);
         setAmbientEnabled();
 
+//        Check for microphone permission
+//        ActivityCompat.requestPermissions(this, new String[]{
+//                Manifest.permission.RECORD_AUDIO
+//        }, 200);
         // Check for sensor and sdcard permission
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED)
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS)
-                != PackageManager.PERMISSION_GRANTED) {
+                && (ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS)
+                != PackageManager.PERMISSION_GRANTED)
+                && (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED)) {
             requestPermissions(new String[]{
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.BODY_SENSORS
             }, 0);
+            requestPermissions(new String[]{
+                    Manifest.permission.RECORD_AUDIO
+            }, 200);
         }
+
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+//                != PackageManager.PERMISSION_GRANTED) {
+//            requestPermissions(new String[]{
+//                    Manifest.permission.RECORD_AUDIO
+//            }, 200);
+//        }
 
         // Create folder if not exists
         File dir = new File(PATH);
@@ -83,7 +109,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     protected void startRecording() {
-        startSpeaker();
+//        startSpeaker();
+        recordAudio();
+        isReccording = true;
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
         File file = new File(PATH, String.format("s%s.csv", timestamp));
@@ -127,7 +155,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     protected void stopRecording() {
-        stopSpeaker();
+//        stopSpeaker();
+        isReccording = false;
         if (mSensorManager != null) {
             mSensorManager.unregisterListener(this);
             mSensorManager = null;
@@ -154,6 +183,81 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             mediaPlayer.release();
             mediaPlayer = null;
         }
+    }
+
+    protected void recordAudio() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String timestamp = new SimpleDateFormat(
+                        "yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
+                File file = new File(PATH, String.format("s%s.pcm", timestamp));
+                FileOutputStream out = null;
+                try {
+                    out = new FileOutputStream(file.getPath());
+                } catch (FileNotFoundException fnfe) {
+                    fnfe.printStackTrace();
+                    Log.e(TAG, "File " + file.getPath() + " not found.");
+                }
+
+                int samplingRate = 44100;
+                int minBufferSize = AudioRecord.getMinBufferSize(
+                        samplingRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+                audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, samplingRate,
+                        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, minBufferSize);
+                audioRecord.startRecording();
+
+                byte[] buffer = new byte[minBufferSize];
+                while (isReccording) {
+                    audioRecord.read(buffer, 0, buffer.length);
+                    try {
+                        out.write(buffer);
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                        Log.e(TAG, "Write audio file error.");
+                    }
+                }
+                try {
+                    out.close();
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                    Log.e(TAG, "Save audio file error.");
+                }
+            }
+        }).start();
+    }
+
+    protected void startMicrophone() {
+//        String timestamp = new SimpleDateFormat(
+//                "yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
+//        File file = new File(PATH, String.format("s%s.3gp", timestamp));
+//
+//        mediaRecorder = new MediaRecorder();
+//        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+//        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
+////        mediaRecorder.setOutputFile(file.getPath());
+//        mediaRecorder.setOutputFile("/sdcard/SensorLog/test.3gp");
+//        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC_ELD);
+//        mediaRecorder.setAudioEncodingBitRate(16);
+//        mediaRecorder.setAudioSamplingRate(44100);
+//        mediaRecorder.setAudioChannels(1);
+
+//        try {
+//            mediaRecorder.prepare();
+//        } catch (IOException ioe) {
+//            Log.e(TAG, "Audio recorder prepare failed.");
+//        }
+//        try {
+//            mediaRecorder.start();
+//        } catch (IllegalStateException ise) {
+//            ise.printStackTrace();
+//        }
+    }
+
+    protected void stopMicrophone() {
+//        mediaRecorder.stop();
+//        mediaRecorder.release();
+//        mediaRecorder = null;
     }
 
     protected boolean hasSpeaker() {
