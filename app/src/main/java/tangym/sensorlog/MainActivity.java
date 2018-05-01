@@ -70,11 +70,9 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 != PackageManager.PERMISSION_GRANTED)) {
             requestPermissions(new String[]{
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    Manifest.permission.BODY_SENSORS
-            }, 0);
-            requestPermissions(new String[]{
+                    Manifest.permission.BODY_SENSORS,
                     Manifest.permission.RECORD_AUDIO
-            }, 200);
+            }, 0);
         }
 
         // Create folder if not exists
