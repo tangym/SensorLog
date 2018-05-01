@@ -14,21 +14,50 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="15pt">
-        <TextView
-            android:id="@+id/text"
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/hello_world"
+            android:orientation="horizontal"
             android:gravity="center"
-            app:layout_box="all" />
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/textSpeaker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Speaker"
+                android:gravity="center"
+                app:layout_box="all" />
 
-        <ToggleButton
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
+            <ToggleButton
+                android:id="@+id/buttonSpeaker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_box="all" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/hello_world"
-            app:layout_box="all" />
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/textSensor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Sensor"
+                android:gravity="center"
+                app:layout_box="all" />
+
+            <ToggleButton
+                android:id="@+id/buttonSensor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_box="all" />
+        </LinearLayout>
     </LinearLayout>
 
 

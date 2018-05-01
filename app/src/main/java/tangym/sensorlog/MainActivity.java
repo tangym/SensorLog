@@ -47,8 +47,10 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private BufferedWriter output;
 
     private BoxInsetLayout mContainerView;
-    private TextView mTextView;
-    private ToggleButton mButton;
+    private TextView mTextViewSpeaker;
+    private ToggleButton mButtonSpeaker;
+    private TextView mTextViewSensor;
+    private ToggleButton mButtonSensor;
     private MediaPlayer mediaPlayer = null;
     private AudioRecord audioRecord = null;
     private boolean isReccording = false;
@@ -82,9 +84,11 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         }
 
         mContainerView = (BoxInsetLayout) findViewById(R.id.container);
-        mTextView = (TextView) findViewById(R.id.text);
-        mButton = (ToggleButton) findViewById(R.id.button);
-        mButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mTextViewSensor = (TextView) findViewById(R.id.textSensor);
+        mButtonSensor = (ToggleButton) findViewById(R.id.buttonSensor);
+        mTextViewSpeaker = (TextView) findViewById(R.id.textSpeaker);
+        mButtonSpeaker = (ToggleButton) findViewById(R.id.buttonSpeaker);
+        mButtonSensor.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -94,10 +98,19 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 }
             }
         });
+        mButtonSpeaker.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    startSpeaker();
+                } else {
+                    stopSpeaker();
+                }
+            }
+        });
     }
 
     protected void startRecording() {
-//        startSpeaker();
         recordAudio();
         isReccording = true;
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -143,7 +156,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     }
 
     protected void stopRecording() {
-//        stopSpeaker();
         isReccording = false;
         if (mSensorManager != null) {
             mSensorManager.unregisterListener(this);
@@ -288,12 +300,12 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private void updateDisplay() {
         if (isAmbient()) {
             mContainerView.setBackgroundColor(getResources().getColor(android.R.color.black));
-            mTextView.setTextColor(getResources().getColor(android.R.color.white));
-//            mButton.setChecked(false); // TODO: change this
-
+            mTextViewSensor.setTextColor(getResources().getColor(android.R.color.white));
+            mTextViewSpeaker.setTextColor(getResources().getColor(android.R.color.white));
         } else {
             mContainerView.setBackground(null);
-            mTextView.setTextColor(getResources().getColor(android.R.color.black));
+            mTextViewSensor.setTextColor(getResources().getColor(android.R.color.black));
+            mTextViewSpeaker.setTextColor(getResources().getColor(android.R.color.black));
         }
     }
 }
