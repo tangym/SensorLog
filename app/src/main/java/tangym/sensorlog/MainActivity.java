@@ -14,8 +14,6 @@ import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.view.BoxInsetLayout;
@@ -36,7 +34,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -53,7 +50,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private TextView mTextView;
     private ToggleButton mButton;
     private MediaPlayer mediaPlayer = null;
-//    private MediaRecorder mediaRecorder = null;
     private AudioRecord audioRecord = null;
     private boolean isReccording = false;
 
@@ -63,10 +59,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
         setContentView(R.layout.activity_main);
         setAmbientEnabled();
 
-//        Check for microphone permission
-//        ActivityCompat.requestPermissions(this, new String[]{
-//                Manifest.permission.RECORD_AUDIO
-//        }, 200);
         // Check for sensor and sdcard permission
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED)
@@ -82,13 +74,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     Manifest.permission.RECORD_AUDIO
             }, 200);
         }
-
-//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-//                != PackageManager.PERMISSION_GRANTED) {
-//            requestPermissions(new String[]{
-//                    Manifest.permission.RECORD_AUDIO
-//            }, 200);
-//        }
 
         // Create folder if not exists
         File dir = new File(PATH);
@@ -214,7 +199,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 int samplingRate = 44100;
                 int minBufferSize = AudioRecord.getMinBufferSize(
                         samplingRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT);
-//                Log.i(TAG, String.format("Audio buffer size: %d", minBufferSize));
                 audioRecord = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, samplingRate,
                         AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT, minBufferSize);
                 audioRecord.startRecording();
@@ -239,39 +223,6 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 }
             }
         }).start();
-    }
-
-    protected void startMicrophone() {
-//        String timestamp = new SimpleDateFormat(
-//                "yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
-//        File file = new File(PATH, String.format("s%s.3gp", timestamp));
-//
-//        mediaRecorder = new MediaRecorder();
-//        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-//        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
-////        mediaRecorder.setOutputFile(file.getPath());
-//        mediaRecorder.setOutputFile("/sdcard/SensorLog/test.3gp");
-//        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC_ELD);
-//        mediaRecorder.setAudioEncodingBitRate(16);
-//        mediaRecorder.setAudioSamplingRate(44100);
-//        mediaRecorder.setAudioChannels(1);
-
-//        try {
-//            mediaRecorder.prepare();
-//        } catch (IOException ioe) {
-//            Log.e(TAG, "Audio recorder prepare failed.");
-//        }
-//        try {
-//            mediaRecorder.start();
-//        } catch (IllegalStateException ise) {
-//            ise.printStackTrace();
-//        }
-    }
-
-    protected void stopMicrophone() {
-//        mediaRecorder.stop();
-//        mediaRecorder.release();
-//        mediaRecorder = null;
     }
 
     protected boolean hasSpeaker() {
