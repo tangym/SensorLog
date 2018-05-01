@@ -204,7 +204,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 FileOutputStream out = null;
                 FileChannel outChannel = null;
                 try {
-                    out = new FileOutputStream(file.getPath());
+                    out = new FileOutputStream(file.getPath(), true);
                     outChannel = out.getChannel();
                 } catch (FileNotFoundException fnfe) {
                     fnfe.printStackTrace();
@@ -214,6 +214,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                 int samplingRate = 44100;
                 int minBufferSize = AudioRecord.getMinBufferSize(
                         samplingRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT);
+//                Log.i(TAG, String.format("Audio buffer size: %d", minBufferSize));
                 audioRecord = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, samplingRate,
                         AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_FLOAT, minBufferSize);
                 audioRecord.startRecording();
@@ -224,6 +225,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     try {
                         //out.write(buffer);
                         outChannel.write(buffer);
+                        buffer.clear();
                     } catch (IOException ioe) {
                         ioe.printStackTrace();
                         Log.e(TAG, "Write audio file error.");
