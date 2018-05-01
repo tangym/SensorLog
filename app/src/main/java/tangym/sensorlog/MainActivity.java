@@ -173,7 +173,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
 
     protected void startSpeaker() {
         Context context = getApplicationContext();
-        mediaPlayer = MediaPlayer.create(context, R.raw.sample_audio);
+        mediaPlayer = MediaPlayer.create(context, R.raw.chirp);
+        mediaPlayer.setLooping(true);
         mediaPlayer.start();
     }
 
