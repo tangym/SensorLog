@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.view.BoxInsetLayout;
+import android.support.wearable.view.ConfirmationOverlay;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.CompoundButton;
@@ -44,7 +45,8 @@ public class MainActivity extends WearableActivity implements SensorEventListene
     private final String TAG = "SensorLog";
     private final String PATH = "/sdcard/SensorLog/";
     private SensorManager mSensorManager;
-    private BufferedWriter output;
+    private BufferedWriter output = null;
+    private BufferedWriter outputSpeaker = null;
 
     private BoxInsetLayout mContainerView;
     private TextView mTextViewSpeaker;
@@ -163,17 +165,51 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             try {
                 output.flush();
                 output.close();
+                output = null;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        Log.i(TAG, "Recording stopped.");
     }
 
     protected void startSpeaker() {
+        String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
+        File file = new File(PATH, String.format("s%s.csv", timestamp));
+        try {
+            outputSpeaker = new BufferedWriter(new FileWriter(file.toString()));
+            outputSpeaker.append(String.format("Has speaker: %s\n", String.valueOf(hasSpeaker())));
+            outputSpeaker.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         Context context = getApplicationContext();
         mediaPlayer = MediaPlayer.create(context, R.raw.chirp);
         mediaPlayer.setLooping(true);
         mediaPlayer.start();
+
+        timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
+        try {
+            outputSpeaker.append(String.format("%s, start()\n", timestamp));
+            outputSpeaker.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // FIXME: this does not work under loop mode
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
+                try {
+                    outputSpeaker.append(String.format("%s, completed\n", timestamp));
+                    outputSpeaker.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     protected void stopSpeaker() {
@@ -181,6 +217,15 @@ public class MainActivity extends WearableActivity implements SensorEventListene
             mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
+        }
+        String timestamp = new SimpleDateFormat("yyyyMMddHHmmssSSS", Locale.getDefault()).format(new Date());
+        try {
+            outputSpeaker.append(String.format("%s, stop()\n", timestamp));
+            outputSpeaker.flush();
+            outputSpeaker.close();
+            outputSpeaker = null;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -232,6 +277,7 @@ public class MainActivity extends WearableActivity implements SensorEventListene
                     ioe.printStackTrace();
                     Log.e(TAG, "Save audio file error.");
                 }
+                Log.i(TAG, "Audio saved.");
             }
         }).start();
     }
